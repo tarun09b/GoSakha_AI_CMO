@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {"label": "GoSakha: setup", "type": "shell", "command": "pnpm run setup", "problemMatcher": []},
+    {"label": "GoSakha: development", "type": "shell", "command": "pnpm dev", "isBackground": true, "problemMatcher": []},
+    {"label": "GoSakha: tests", "type": "shell", "command": "pnpm test", "group": "test", "problemMatcher": []},
+    {"label": "GoSakha: build", "type": "shell", "command": "pnpm build", "group": {"kind": "build", "isDefault": true}, "problemMatcher": []}
+  ]
+}

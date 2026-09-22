@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {initialState} from '../shared/model.ts';
+import {isHotLead,isUpcoming} from '../shared/domain.ts';
+import {runSampleWorkflow,sampleAgents} from '../frontend/lib/sample-provider.ts';
+test('fresh seed calculates 8 hospital prospects, 3 hot leads, 2 upcoming demos and 2 approvals',()=>{const s=initialState(true);assert.equal(s.leads.filter(l=>!l.archived&&!['Won','Lost'].includes(l.stage)).length,8);assert.equal(s.leads.filter(isHotLead).length,3);assert.equal(s.items.filter(i=>isUpcoming(i)).length,2);assert.equal(s.items.filter(i=>i.status==='Pending approval').length,2);assert.equal(s.events.length,4);assert.ok(s.events.every(e=>e.productId==='sakha'&&e.correlationId&&e.simulated))});
+for(const agent of sampleAgents)test(`${agent} mock returns records and correlated events without modifying its input`,()=>{const seed=initialState(true),before=JSON.stringify(seed),s=runSampleWorkflow(seed,agent);assert.equal(JSON.stringify(seed),before);assert.ok(s.items.length>seed.items.length);assert.equal(s.mockRuns[0].status,'Completed');const events=s.events.filter(e=>e.workflowRunId===s.mockRuns[0].id);assert.ok(events.some(e=>e.type==='WORKFLOW_STARTED'));assert.ok(events.some(e=>e.type==='WORKFLOW_COMPLETED'));assert.ok(events.every(e=>e.simulated&&e.metadata.externalAction===false&&e.correlationId===s.mockRuns[0].id));assert.ok(!s.items.some(i=>['Sent','Published'].includes(i.status)))});
+test('failed mock emits failure details and preserves source records',()=>{const s=initialState(false),result=runSampleWorkflow(s,'CRM Agent');assert.equal(result.mockRuns[0].status,'Failed');assert.equal(result.leads.length,0);assert.ok(result.events.some(e=>e.type==='WORKFLOW_FAILED'))});
+test('disabled agent cannot execute a mock',()=>{const s=initialState(true);s.disabledAgents=['LinkedIn Agent'];assert.throws(()=>runSampleWorkflow(s,'LinkedIn Agent'),/Enable/)});

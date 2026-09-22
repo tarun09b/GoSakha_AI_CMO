@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {loadWorkspace} from '../frontend/lib/workspace-client.ts';
+import {initialState} from '../shared/model.ts';
+const response=()=>({state:initialState(true),revision:0});
+test('valid workspace returns records and makes the exact live request',async()=>{let seen;const d=await loadWorkspace({fetcher:async(url,options)=>{seen={url,options};return Response.json(response())}});assert.equal(seen.url,'/api/workspace?mode=live');assert.equal(seen.options.cache,'no-store');assert.equal(d.state.leads.length,8)});
+test('HTTP failure preserves actual status and server message',async()=>{await assert.rejects(loadWorkspace({fetcher:async()=>Response.json({message:'Sign in required.'},{status:403})}),/HTTP 403.*Sign in required/)});
+test('network rejection resolves with an error',async()=>{await assert.rejects(loadWorkspace({fetcher:async()=>{throw new TypeError('Failed to fetch')}}),/Failed to fetch/)});
+test('HTML instead of JSON produces a readable failure',async()=>{await assert.rejects(loadWorkspace({fetcher:async()=>new Response('<html>Gateway failed</html>',{status:502})}),/unreadable response.*502/)});
+test('malformed success is rejected before it can reach rendering',async()=>{for(const state of [null,{}, {...initialState(true),leads:[null]}, {...initialState(true),settings:null}])await assert.rejects(loadWorkspace({fetcher:async()=>Response.json({state,revision:0})}),/invalid data/)});
+test('a fetch that never resolves cannot leave the client pending',async()=>{await assert.rejects(loadWorkspace({timeoutMs:20,fetcher:()=>new Promise(()=>{})}),/timed out/)});
+test('a response body that never resolves also times out',async()=>{await assert.rejects(loadWorkspace({timeoutMs:20,fetcher:async()=>({ok:true,status:200,json:()=>new Promise(()=>{})})}),/timed out/)});
+test('switching workspace cancels an outstanding load',async()=>{const c=new AbortController();const pending=loadWorkspace({signal:c.signal,fetcher:()=>new Promise(()=>{})});c.abort();await assert.rejects(pending,{name:'AbortError'})});

@@ -1,0 +1,9 @@
+{
+  "folders": [{"name": "GoSakha CMO AI", "path": "."}],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "files.exclude": {"**/*.tsbuildinfo": true},
+    "search.exclude": {"**/node_modules": true, "**/dist": true, "**/.local": true},
+    "files.watcherExclude": {"**/node_modules/**": true, "**/dist/**": true, "**/.local/**": true}
+  }
+}

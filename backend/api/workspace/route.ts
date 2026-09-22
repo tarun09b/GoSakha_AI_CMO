@@ -1,0 +1,6 @@
+import {readState,saveState} from '@/backend/services/storage';
+import {mutate} from '@/shared/model';
+import {access,authorize,requestBody} from '@/backend/services/access';
+export const dynamic='force-dynamic';
+export async function GET(req:Request){try{const sample=new URL(req.url).searchParams.get('mode')!=='live';const u=await access(sample);const result=await readState(u.key,sample);return Response.json({...result,user:u.displayName,role:u.role,readOnly:u.role==='Viewer'},{headers:{'Cache-Control':'no-store'}})}catch(e){return Response.json({message:(e as Error).message},{status:403})}}
+export async function POST(req:Request){try{const body=await requestBody(req);const sample=body.mode!=='live';const u=await access(sample);const {state,revision,exists}=await readState(u.key,sample);authorize(u.role,body.action,body.payload||{},state);if(body.revision!==revision)return Response.json({message:'Your workspace changed. Refresh and try again.'},{status:409});mutate(state,body.action,body.payload||{},u.displayName,sample);await saveState(u.key,state,revision,exists);return Response.json({state,revision:revision+1,user:u.displayName})}catch(e){return Response.json({message:(e as Error).message},{status:400})}}

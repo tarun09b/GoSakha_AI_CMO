@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789637268257,
+      "tag": "0000_redundant_alex_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789799642985,
+      "tag": "0001_fixed_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789848224849,
+      "tag": "0002_dear_supreme_intelligence",
+      "breakpoints": true
+    }
+  ]
+}
