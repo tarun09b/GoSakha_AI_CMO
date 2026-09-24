@@ -3,6 +3,13 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { loginHandler } from './api/auth/login.js';
+import { requireAuth } from './auth/jwt.js';
+import { requireRole } from './middleware/require-role.js';
+import { listUsersHandler } from './api/users/list.js';
+import { createUserHandler } from './api/users/create.js';
+import { updateUserHandler } from './api/users/update.js';
+import { changePasswordHandler } from './api/auth/change-password.js';
+import { resetPasswordHandler } from './api/users/reset-password.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
@@ -18,6 +25,15 @@ app.get('/api/health', (req, res) => {
 
 // Auth routes
 app.post('/api/auth/login', loginHandler);
+// User management — Founder/Admin only
+app.get('/api/users',       requireAuth, requireRole(), listUsersHandler);
+app.post('/api/users',      requireAuth, requireRole(), createUserHandler);
+app.patch('/api/users/:id', requireAuth, requireRole(), updateUserHandler);
+// Self-service password change
+app.patch('/api/auth/change-password', requireAuth, changePasswordHandler);
+
+// Admin password reset for another user
+app.post('/api/users/:id/reset-password', requireAuth, requireRole(), resetPasswordHandler);
 
 // 404 handler
 app.use((req, res) => {

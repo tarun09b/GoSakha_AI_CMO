@@ -1,4 +1,13 @@
 import Dashboard from './dashboard';
-import {initialState} from '@/shared/model';
-export const dynamic='force-dynamic';
-export default function Home(){return <Dashboard seed={initialState(true)}/>}
+import LoginGate from './login-gate';
+import { initialState } from '@/shared/model';
+
+export const dynamic = 'force-dynamic';
+
+export default function Home() {
+  return (
+    <LoginGate>
+      <Dashboard seed={initialState(true)} />
+    </LoginGate>
+  );
+}

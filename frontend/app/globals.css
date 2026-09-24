@@ -123,3 +123,53 @@ html{scroll-padding-top:90px}.app-main{width:auto;flex:1;min-width:0}.topbar{pos
 [data-mobile=true] [data-slot=sidebar-content]{scrollbar-width:thin;scrollbar-color:#567863 #123e32}[data-mobile=true] [data-slot=sidebar-content]::-webkit-scrollbar{width:5px}[data-mobile=true] [data-slot=sidebar-content]::-webkit-scrollbar-thumb{background:#567863;border-radius:4px}[data-mobile=true] [data-slot=sidebar-content]::-webkit-scrollbar-track{background:#123e32}[data-mobile=true] [data-slot=sidebar-menu-button]{height:39px;border-radius:8px}.btn,.header-icon,.account-trigger,.kpi,.brand-icon,.command-trigger,[data-mobile=true] [data-slot=sidebar-menu-button]{transition:background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease}}
 
 .activity-filters{padding:16px 22px;display:flex;gap:10px;flex-wrap:wrap}.activity-filters [data-slot=select-trigger]{min-width:150px;max-width:230px}.product-fact-grid{padding:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.product-fact-grid h3{font-size:16px;margin-bottom:8px}.product-fact-grid p{color:#607564;font-size:14px;line-height:1.7}.notice strong{display:block}.notice p{font-size:14px;line-height:1.7}@media(max-width:767px){.product-fact-grid{grid-template-columns:1fr}.activity-filters [data-slot=select-trigger]{max-width:100%;flex:1}}
+
+
+/* Hide dashboard shell elements when Account & team is active */
+body.account-team-view .page-content > .page-heading,
+body.account-team-view .page-content > .context-bar,
+body.account-team-view .page-content > .notice,
+body.account-team-view .page-content > .error-banner,
+body.account-team-view .page-content > .view-filter {
+  display: none !important;
+}
+
+/* Hide the KPI cards and phase notices on Account & team view */
+body.account-team-view .page-content > *:not(.view-transition):not(.page-footer):not(.account-layout) {
+  display: none !important;
+}
+
+/* Team row layout — full width, actions flush right */
+body.account-team-view .account-wide {
+  padding-left: 28px !important;
+  padding-right: 28px !important;
+}
+
+body.account-team-view .account-wide .team-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  column-gap: 24px !important;
+}
+
+body.account-team-view .account-wide .team-row > div:first-child {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.account-team-view .account-wide .team-row > div:first-child small {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.account-team-view .account-wide .team-row .team-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+}
