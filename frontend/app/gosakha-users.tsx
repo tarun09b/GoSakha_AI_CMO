@@ -27,7 +27,7 @@ const ROLE_GUIDE: [string, string][] = [
   ['Viewer', 'Reads the workspace without changing data.'],
 ];
 
-const API = 'http://localhost:4000';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 type GosakhaUser = {
   id: string;
@@ -92,12 +92,35 @@ export function GoSakhaUsers() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
     });
-    const d: any = await r.json();
-    if (!r.ok) { toast.error(d.message); throw new Error(d.message); }
+    const d: { message?: string; code?: string } = await r.json();
+    if (!r.ok) {
+      const message = d.message || 'Failed to update teammate.';
+      toast.error(message);
+      throw new Error(message);
+    }
     toast.success(successMsg);
-    await load();
+    setUsers(prev => prev.map(u =>
+      u.id === id
+        ? { ...u, ...(body as Partial<GosakhaUser>) }
+        : u
+    ));
   }
-
+  async function deleteUser(id: string) {
+    const token = getToken();
+    if (!token) return;
+    const r = await fetch(`${API}/api/users/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const d: { message?: string; code?: string } = await r.json();
+    if (!r.ok) {
+      const message = d.message || 'Failed to remove teammate.';
+      toast.error(message);
+      throw new Error(message);
+    }
+    setUsers(prev => prev.filter(u => u.id !== id));
+    toast.success('Teammate permanently removed');
+  }
   async function createUser(e: FormEvent) {
     e.preventDefault();
     const token = getToken();
@@ -114,7 +137,7 @@ export function GoSakhaUsers() {
       toast.success('Teammate added');
       setForm({ fullName: '', email: '', password: '', role: 'Sales' });
       setShowAdd(false);
-      await load();
+      if (d.user) setUsers(prev => [...prev, d.user]);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -235,16 +258,16 @@ export function GoSakhaUsers() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Remove {u.fullName}?</AlertDialogTitle>
+                              <AlertDialogTitle>Remove {u.fullName} permanently?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                They will lose access to this GoSakha AI CMO workspace. The account stays in the database as disabled so audit history is preserved — a Founder can re-enable it later.
+                                This permanently deletes the teammate account. The action is recorded in the immutable audit log and cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => patchUser(u.id, { isActive: false }, 'Teammate removed')}>
-                                Remove access
+                                onClick={() => deleteUser(u.id)}>
+                                Permanently remove
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
