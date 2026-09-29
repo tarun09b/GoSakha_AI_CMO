@@ -18,6 +18,6 @@
     "types": ["node", "@cloudflare/workers-types", "vite/client"],
     "allowImportingTsExtensions": true
   },
-  "include": ["frontend/**/*.ts", "frontend/**/*.tsx", "backend/**/*.ts", "shared/**/*.ts"],
+  "include": ["frontend/**/*.ts", "frontend/**/*.tsx", "backend/**/*.ts", "shared/**/*.ts", "backend/dashboard-backup.tsx"],
   "exclude": ["node_modules", "frontend/dist", "docs", "frontend/.next"]
 }

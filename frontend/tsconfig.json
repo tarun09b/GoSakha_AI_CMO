@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["**/*.ts", "**/*.tsx", "../shared/**/*.ts", "../backend/**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "../shared/**/*.ts", "../backend/**/*.ts", "../backend/dashboard-backup.tsx"],
   "exclude": ["dist", "node_modules", ".next"]
 }

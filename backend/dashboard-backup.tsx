@@ -9,11 +9,11 @@ import {Tabs,TabsList,TabsTrigger,TabsContent} from '@/frontend/components/ui/ta
 import {Switch} from '@/frontend/components/ui/switch';
 import {Toaster,toast} from 'sonner';
 import {mutate,initialState,stages,agentNames,type State,type Lead,type Item} from '@/shared/model';
-import {Operations,FactGuide} from './operations';
+import {Operations,FactGuide} from '../frontend/app/operations';
 import {runSampleWorkflow,sampleAgents} from '@/frontend/lib/sample-provider';
 import {loadWorkspace} from '@/frontend/lib/workspace-client';
-import {AccountTeam} from './account-team';
-import {WorkspaceHeader,WorkspaceSwitch,FocusQueue,MobileNavigationClose} from './workspace-controls';
+import {AccountTeam} from '../frontend/app/account-team';
+import {WorkspaceHeader,WorkspaceSwitch,FocusQueue,MobileNavigationClose} from '../frontend/app/workspace-controls';
 import {roleAllows,isHotLead,isUpcoming,metricsFor,checkClaims} from '@/shared/domain';
 const navGroups=[{title:'WORKSPACE',items:[['Command center',LayoutDashboard],['Live activity',Activity],['Hospitals & leads',Building2],['Pipeline',Network],['Demos & meetings',CalendarDays]]},{title:'GROWTH ENGINE',items:[['Email outreach',Send],['Gmail inbox',Inbox],['LinkedIn',Linkedin],['Instagram',Instagram],['Content studio',FileText],['Campaigns',Megaphone],['Trends',ChartNoAxesCombined]]},{title:'INTELLIGENCE',items:[['AI CMO Brain',BrainCircuit],['Approvals',ShieldCheck],['Agent center',Workflow],['Analytics',ChartNoAxesCombined],['Products & knowledge',BookOpen]]}];
 const iconMap:any={'Email':Mail,'LinkedIn':Linkedin,'Instagram':Instagram,'Meeting':CalendarDays,'Internal':ListChecks};
@@ -64,7 +64,6 @@ export default function Dashboard({seed}:{seed:State}){
  
  
  const overview=<><FocusQueue state={state} open={setDetail} go={go}/><div className="overview-columns"><div className="main-column"><section className="card"><CardHead title="Hospitals to focus on" aside={<button className="text-button" onClick={()=>go('Hospitals & leads')}>View all <ArrowRight size={15}/></button>}/>{leadTable(visibleLeads.filter(l=>isHotLead(l)).slice(0,4),true)}</section><section className="card"><CardHead title="Live activity" aside={<span className="live-label"><i/>Workspace feed</span>}/>{eventList(5)}<button className="card-bottom" onClick={()=>go('Live activity')}>View all activity <ArrowRight size={15}/></button></section><div className="two-grid"><section className="card"><CardHead title="Pipeline snapshot" aside={<button className="icon-button" aria-label="Open pipeline" onClick={()=>go('Pipeline')}><ArrowUpRight size={16}/></button>}/><div className="funnel">{stages.slice(0,6).map((s,i)=>{const n=state.leads.filter(l=>l.stage===s).length;return <button key={s} className="funnel-row" onClick={()=>setDetail({kind:'metric',title:s+' hospitals',leads:state.leads.filter(l=>l.stage===s)})}><span>{s}</span><div><i style={{width:(n?Math.max(15,n/Math.max(1,state.leads.length)*100):0)+'%',background:['#98b9b0','#70a99c','#428e7d','#27745f','#165b47','#0a4535'][i]}}/></div><strong>{n}</strong></button>})}</div></section><section className="card"><CardHead title="Upcoming demos" aside={<button className="icon-button" aria-label="Add demo" onClick={()=>newItem('demo')}><Plus size={17}/></button>}/>{demoList(2)}</section></div></div><aside className="right-rail"><section className="card approval-panel"><CardHead title="Needs your approval" aside={<span className="count">{approvals.length}</span>}/>{approvals.slice(0,2).map(approvalCard)}{!approvals.length&&<div className="small-empty"><CheckCheck size={25}/><p>You’re all caught up.</p></div>}<button className="card-bottom" onClick={()=>go('Approvals')}>Open approval queue <ArrowRight size={15}/></button></section><section className="card"><CardHead title="Agent pulse" aside={<button className="text-button" onClick={()=>go('Agent center')}>Manage</button>}/><div className="agent-pulse">{agentNames.slice(0,6).map((a,i)=><button onClick={()=>go('Agent center')} key={a}><span>{a}</span><span className="agent-status"><i className={state.disabledAgents.includes(a)?'gray':i===0||i===2?'green':'gray'}/>{state.disabledAgents.includes(a)?'Disabled':i===0||i===2?'Rule-based':'Not connected'}</span></button>)}</div><div className="rail-note">External agents are waiting for connections.</div></section><div className="product-mini"><AudioLines size={24}/><div><strong>Selling Sakha to hospitals</strong><p>Your hospital’s 24/7 AI assistant.</p><button onClick={()=>go('Products & knowledge')}>Explore product knowledge <ArrowUpRight size={13}/></button></div></div></aside></div></>;
-
  function phaseNotice(v:string){const phases:Record<string,[number,string]>={'Gmail inbox':[8,'Live Gmail agent not connected. Manual reply records work; no mailbox is being synchronized.'],'Email outreach':[8,'Template drafts and sample approval work. Live sending and unattended reminders are not yet connected.'],'LinkedIn':[9,'Live publishing agent not connected. Template drafts, review and the Phase 5 mock workflow are available.'],'Instagram':[10,'Live publishing agent not connected. Template captions, review and the Phase 5 mock workflow are available.'],'Content studio':[11,'Template content and revisions work. AI generation and the full multi-format studio are not yet built.'],'Campaigns':[13,'Campaign records and attribution work. Automated campaign intelligence is not yet built.'],'Trends':[14,'Manual source records work. Automated trend discovery is not yet connected.'],'AI CMO Brain':[15,'Rule-based priorities and delegation work. Full AI orchestration is not yet connected.'],'Agent center':[17,'Mock run history works in Sample workspace. Live autonomous agent health is not yet available.']};const p=phases[v];return p?<div className="notice" role="status"><strong>Phase {p[0]} · not live yet</strong><p>{p[1]}</p></div>:null}
  function mainView(){
  if(['Analytics','Campaigns','AI CMO Brain','Trends','Integrations'].includes(view))return <Operations view={view} state={state} mode={mode} act={act} refresh={refresh} open={i=>setDetail({kind:'item',id:i.id})} create={kind=>newItem(kind,{source:''})}/>;
@@ -131,70 +130,29 @@ export default function Dashboard({seed}:{seed:State}){
                         
                         <p>{sectionSub[view]||'Every action, connected to your hospital growth workflow.'}</p>
                     </div>
-            {view==='Command center'&&
-                <div className="heading-actions">
-            <Pick
-            value={mode==='sample'?'Sample workspace':'My workspace'}
-            onChange={v=>changeMode(v==='Sample workspace'?'sample':'live')}
-            options={['Sample workspace','My workspace']}
-            label="Workspace data mode"
-            />
-
-            <button
-            className="btn"
-            disabled={!loaded||!roleAllows(role,'lead.create')}
-            onClick={()=>setForm({
-                kind:'lead',
-                name:'',
-                contact:'',
-                email:'',
-                location:'',
-                source:'Manual',
-                type:'Hospital'
-            })}
-             >
-            <Plus size={17}/>
-            Add hospital
-            </button>
-         </div>
-    }
+                    <div className="heading-actions">
+                        <Pick value={mode==='sample'?'Sample workspace':'My workspace'} onChange={v=>changeMode(v==='Sample workspace'?'sample':'live')} options={['Sample workspace','My workspace']} label="Workspace data mode"/>
+                        <button className="btn" disabled={!loaded||!roleAllows(role,'lead.create')} onClick={()=>setForm({kind:'lead',name:'',contact:'',email:'',location:'',source:'Manual',type:'Hospital'})}><Plus size={17}/>Add hospital</button>
+                    </div>
                     
                 </div>
                 
                 
-                {view==='Command center'&&
-    <div className="context-bar">
-        <div className="context-left">
-            <span className={'mode-label '+(mode==='sample'?'sample':'')}>
-                <span/>
-                {mode==='sample'?'Sample data':'Your saved data'}
-            </span>
-
-            <span className="context-divider"/>
-
-            <span>
-                {mode==='sample'
-                    ?'Fictional Sakha sales data · changes last until reload · no external actions.'
-                    :'Private hospital outreach workspace.'}
-            </span>
-        </div>
-
-        <button className="sync-button" onClick={refresh}>
-            <RefreshCw size={13}/>
-            {mode==='sample'
-                ?'Sample data ready'
-                :sync
-                    ?'Updated '+sync
-                    :error
-                        ?'Retry loading'
-                        :'Loading hospital records…'}
-        </button>
-    </div>
-}
+                <div className="context-bar">
+                    <div className="context-left">
+                        <span className={'mode-label '+(mode==='sample'?'sample':'')}>
+                            <span/>{mode==='sample'?'Sample data':'Your saved data'}</span>
+                            <span className="context-divider"/>
+                            <span>{mode==='sample'?'Fictional Sakha sales data · changes last until reload · no external actions.':'Private hospital outreach workspace.'}</span>
+                    </div>
+                    <button className="sync-button" onClick={refresh}><RefreshCw size={13}/>{mode==='sample'?'Sample data ready':sync?'Updated '+sync:error?'Retry loading':'Loading hospital records…'}</button>
+                </div>
                 {readOnly&&<div className="notice">You have view-only access. Changes require a workspace editing role.</div>}
                 {error&&<div className="error-banner" role="alert"><span>{error}</span>{/sign in/i.test(error)?<a className="btn" href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT</a>:<button onClick={refresh}>Retry</button>}</div>}
                 {['Hospitals & leads','Pipeline','Email outreach','Gmail inbox','LinkedIn','Instagram','Content studio','Tasks','Live activity','Audit log'].includes(view)&&<div className="view-filter"><Search size={17}/><input aria-label="Filter current view" placeholder={'Filter '+view.toLowerCase()+'…'} value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button aria-label="Clear filter" onClick={()=>setSearch('')}><X size={16}/></button>}</div>}
-                {loaded && view==='Command center' && kpis()}               
+                                
+                {loaded&&kpis()}
+
                 {loaded&&phaseNotice(view)}
                 <div key={view+'-'+mode} className="view-transition">
                     {!loaded?<section className="card">

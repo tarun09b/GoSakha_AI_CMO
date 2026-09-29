@@ -1,6 +1,7 @@
 # One dependency installation serves frontend, backend and tests.
 strictDepBuilds: true
 allowBuilds:
+  bcrypt: set this to true or false
   esbuild: true
   fsevents: true
   sharp: true
