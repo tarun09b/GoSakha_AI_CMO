@@ -13,6 +13,20 @@ import { updateUserHandler } from './api/users/update.js';
 import { loginLimiter, apiLimiter } from './middleware/rate-limits.js';
 import { changePasswordHandler } from './api/auth/change-password.js';
 import { resetPasswordHandler } from './api/users/reset-password.js';
+import {
+  createDraftHandler,
+  listDraftsHandler,
+  getDraftHandler,
+  submitForApprovalHandler,
+  listTemplatesHandler,
+} from './api/email/drafts.js';
+import { approvalDecisionHandler } from './api/approvals/decision.js';
+import { sendDraftHandler } from './api/email/send.js';
+import { scrapeHospitalsHandler } from './api/scrape/hospitals.js';
+import { listLeadsHandler } from './api/scrape/list.js';
+import { draftEmailForLeadHandler } from './api/leads/draft-email.js';
+import { listApprovalsHandler } from './api/approvals/list.js';
+
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
@@ -44,11 +58,33 @@ app.get('/api/health', (req, res) => {
 
 // Auth routes
 app.post('/api/auth/login', loginLimiter, loginHandler);
+app.post('/api/leads/:id/draft-email', requireAuth, requireRole(), draftEmailForLeadHandler);
+
 // User management — Founder/Admin only
 app.get('/api/users',       requireAuth, requireRole(), listUsersHandler);
 app.post('/api/users',      requireAuth, requireRole(), createUserHandler);
 app.patch('/api/users/:id', requireAuth, requireRole(), updateUserHandler);
 app.delete('/api/users/:id', requireAuth, requireRole(), deleteUserHandler);
+
+// Email drafts
+app.post('/api/email/drafts',                       requireAuth, createDraftHandler);
+app.get('/api/email/drafts',                        requireAuth, listDraftsHandler);
+app.get('/api/email/drafts/:id',                    requireAuth, getDraftHandler);
+app.post('/api/email/drafts/:id/submit-approval',   requireAuth, submitForApprovalHandler);
+app.post('/api/email/send', requireAuth, sendDraftHandler);
+
+// Scraper + leads
+app.post('/api/scrape/hospitals', requireAuth, requireRole(), scrapeHospitalsHandler);
+app.get('/api/leads',              requireAuth, listLeadsHandler);
+
+
+// Templates list (read-only)
+app.get('/api/email/templates',                     requireAuth, listTemplatesHandler);
+
+app.post('/api/approvals/:id/decision', requireAuth, requireRole(), approvalDecisionHandler);
+
+app.get('/api/approvals', requireAuth, listApprovalsHandler);
+
 // Self-service password change
 app.patch('/api/auth/change-password', requireAuth, changePasswordHandler);
 

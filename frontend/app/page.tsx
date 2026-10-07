@@ -1,4 +1,4 @@
-import Dashboard from '../../backend/dashboard-backup';
+import Dashboard from './dashboard';
 import LoginGate from './login-gate';
 import { initialState } from '@/shared/model';
 
